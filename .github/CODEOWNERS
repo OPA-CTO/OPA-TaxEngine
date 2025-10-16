@@ -1,0 +1,4 @@
+/powerquery/*   @cto  @cfo  @cpo
+/references/*   @cfo
+/config/*       @cto
+/docs/*         @cto  @cfo
