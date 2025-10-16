@@ -1,0 +1,15 @@
+Raw_Header,Target_Header
+Device ID,device_id
+Device Name,device_name
+Location,location_name
+Timestamp,timestamp
+Order Date,order_date
+SKU,sku
+UOM UPC,gtin
+Description,description
+Class,class_label_raw
+Quantity,qty
+Unit Price,unit_price
+Extended Price,extended_price
+Discount,discount
+Tax Collected,tax_collected
