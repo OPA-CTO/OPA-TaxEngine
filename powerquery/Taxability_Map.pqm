@@ -1,1 +1,132 @@
-// placeholder for Codex implementation of Taxability_Map (Q4-2025)
+let
+    ImportsFolder =
+        let
+            rawPath = try #"Imports_Folder_Path" otherwise null,
+            sanitized =
+                if rawPath is text then
+                    let
+                        trimmed = Text.Trim(rawPath),
+                        normalized =
+                            if Text.EndsWith(trimmed, "\\") or Text.EndsWith(trimmed, "/") then
+                                trimmed
+                            else if Text.Contains(trimmed, "/") and not Text.Contains(trimmed, "\\") then
+                                trimmed & "/"
+                            else
+                                trimmed & "\\"
+                    in
+                        normalized
+                else
+                    error "Taxability_Map: Imports_Folder_Path parameter is missing or invalid."
+        in
+            sanitized,
+    Source = Excel.Workbook(File.Contents(ImportsFolder & "OPA_Tax_Class.xlsx"), null, true),
+    TaxClassSheet = Source{[Item = "Tax_Class", Kind = "Sheet"]}[Data],
+    PromotedHeaders = Table.PromoteHeaders(TaxClassSheet, [PromoteAllScalars = true]),
+    TrimmedHeaderNames = Table.TransformColumnNames(PromotedHeaders, Text.Trim),
+    TextColumns = {"Class/Category", "Class", "Category", "Assumed Taxability", "Assumed_Taxability", "Rule Code", "Rule_Code", "Class Notes", "Class_Notes", "Tax Class Version", "Tax_Class_Version"},
+    TrimmedTextColumns = List.Accumulate(
+        TextColumns,
+        TrimmedHeaderNames,
+        (state, columnName) =>
+            if Table.HasColumns(state, columnName) then
+                Table.TransformColumns(
+                    state,
+                    {{
+                        columnName,
+                        each if _ is null then null else Text.Trim(Text.From(_)),
+                        type nullable text
+                    }}
+                )
+            else
+                state
+    ),
+    WithClassCategory =
+        if Table.HasColumns(TrimmedTextColumns, "Class/Category") then
+            Table.AddColumn(
+                TrimmedTextColumns,
+                "class_category",
+                each Text.Upper(Text.Trim(Record.Field(_, "Class/Category"))),
+                type nullable text
+            )
+        else if Table.HasColumns(TrimmedTextColumns, "Class") or Table.HasColumns(TrimmedTextColumns, "Category") then
+            Table.AddColumn(
+                TrimmedTextColumns,
+                "class_category",
+                each
+                    let
+                        classValue = if Table.HasColumns(TrimmedTextColumns, "Class") then Record.FieldOrDefault(_, "Class", null) else null,
+                        categoryValue = if Table.HasColumns(TrimmedTextColumns, "Category") then Record.FieldOrDefault(_, "Category", null) else null,
+                        pieces = List.Select(
+                            {
+                                classValue,
+                                categoryValue
+                            },
+                            (value) =>
+                                value <> null and
+                                Text.Length(Text.Trim(Text.From(value))) > 0
+                        ),
+                        combined =
+                            if List.IsEmpty(pieces) then
+                                null
+                            else
+                                Text.Combine(List.Transform(pieces, each Text.Trim(Text.From(_))), "/")
+                    in
+                        if combined = null then null else Text.Upper(Text.Trim(combined)),
+                type nullable text
+            )
+        else
+            error "Taxability_Map: Missing class/category source columns.",
+    WithAssumedTaxability = Table.AddColumn(
+        WithClassCategory,
+        "assumed_taxability",
+        each Record.FieldOrDefault(_, "Assumed Taxability", Record.FieldOrDefault(_, "Assumed_Taxability", null)),
+        type nullable text
+    ),
+    WithRuleCode = Table.AddColumn(
+        WithAssumedTaxability,
+        "rule_code",
+        each Record.FieldOrDefault(_, "Rule Code", Record.FieldOrDefault(_, "Rule_Code", null)),
+        type nullable text
+    ),
+    WithNotes = Table.AddColumn(
+        WithRuleCode,
+        "class_notes",
+        each Record.FieldOrDefault(_, "Class Notes", Record.FieldOrDefault(_, "Class_Notes", null)),
+        type nullable text
+    ),
+    WithVersion = Table.AddColumn(
+        WithNotes,
+        "Tax_Class_Version",
+        each Record.FieldOrDefault(_, "Tax Class Version", Record.FieldOrDefault(_, "Tax_Class_Version", null)),
+        type nullable text
+    ),
+    WithSourceFile = Table.AddColumn(WithVersion, "Source_File", each "OPA_Tax_Class.xlsx", type text),
+    WithSourceSheet = Table.AddColumn(WithSourceFile, "Source_Sheet", each "Tax_Class", type text),
+    SelectedColumns = Table.SelectColumns(
+        WithSourceSheet,
+        {
+            "class_category",
+            "assumed_taxability",
+            "rule_code",
+            "class_notes",
+            "Tax_Class_Version",
+            "Source_File",
+            "Source_Sheet"
+        }
+    ),
+    NormalizedAssumedTaxability = Table.TransformColumns(
+        SelectedColumns,
+        {{
+            "assumed_taxability",
+            each
+                if _ is null then
+                    null
+                else
+                    Text.Proper(Text.Trim(Text.From(_))),
+            type nullable text
+        }}
+    ),
+    Deduped = Table.Distinct(NormalizedAssumedTaxability),
+    Sorted = Table.Sort(Deduped, {{"class_category", Order.Ascending}})
+in
+    Sorted
