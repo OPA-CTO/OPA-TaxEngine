@@ -18,6 +18,38 @@ Owners: CTO (architecture), CFO (policy), CPO (taxonomy), COO (device map)
 
 ---
 
+## Quick Start
+
+To get started with the OPA TaxEngine and validate your local setup:
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/OPA-CTO/OPA-TaxEngine.git
+   cd OPA-TaxEngine
+   ```
+
+2. **Run automated validation**:
+   ```bash
+   make validate
+   # Or individually:
+   # make validate-pqm validate-deps validate-config
+   ```
+
+3. **Review the documentation**:
+   - [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) - Complete setup guide
+   - [`docs/BUILD.md`](docs/BUILD.md) - Build and automation guide
+   - [`docs/README_CTO.md`](docs/README_CTO.md) - Implementation contract
+   - [`docs/Tests_Validation_Checklist.md`](docs/Tests_Validation_Checklist.md) - Validation scenarios
+
+4. **Develop Power Query modules**:
+   - Add `.pqm` files to `powerquery/` directory
+   - Follow the refresh order in `docs/README_CTO.md`
+   - Validate changes with `make validate-pqm`
+
+For detailed setup and usage instructions, see the sections below.
+
+---
+
 ## Mission
 
 The OPA Tax Engine automates **sales tax computation, jurisdictional mapping, and DR‑0100 reporting** for On Point Amenities vending and micromart operations.  

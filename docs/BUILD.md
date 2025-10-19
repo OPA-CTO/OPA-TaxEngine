@@ -91,10 +91,29 @@ Ensures documentation completeness:
 
 You can run all validation steps locally before pushing:
 
+### Using Make (Recommended)
+
 ```bash
 # Navigate to repository root
 cd /path/to/OPA-TaxEngine
 
+# Run all validations
+make validate
+
+# Or run specific validations
+make validate-pqm         # Power Query modules only
+make validate-deps        # Dependencies only
+make validate-config      # Configuration only
+make validate-structure   # Structure only
+make validate-docs        # Documentation only
+
+# See all available targets
+make help
+```
+
+### Using Python Scripts Directly
+
+```bash
 # Run all validation scripts
 python3 scripts/validate_pqm.py
 python3 scripts/check_dependencies.py
