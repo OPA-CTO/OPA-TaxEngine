@@ -11,8 +11,11 @@ __pycache__/
 *.pyc
 
 # Build artifacts
-/exports/*
-!exports/.keep
+/exports/
+/exports_tmp/
+exports_tmp/
+exports_tmp/*
+exports_tmp/**
 
 # Local tooling
 .vscode/
