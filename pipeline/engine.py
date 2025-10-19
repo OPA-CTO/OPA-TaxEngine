@@ -71,10 +71,21 @@ def expand_rates_for_transactions(orders: pd.DataFrame, rates: pd.DataFrame) -> 
     merged = merged[merged['Rate_Effective_From'] <= merged['Txn_Date']]
     merged = merged[merged['Txn_Date'] <= merged['Rate_Effective_To']]
     # Ensure a canonical Jurisdiction_Code exists for downstream
-    if left_jur in merged.columns:
+    # handle cases where pandas added suffixes like _x/_y during merge
+    if left_jur and left_jur in merged.columns:
         merged['Jurisdiction_Code'] = merged[left_jur]
-    elif right_jur in merged.columns:
+    elif f"{left_jur}_x" in merged.columns:
+        merged['Jurisdiction_Code'] = merged[f"{left_jur}_x"]
+    elif f"{left_jur}_y" in merged.columns:
+        merged['Jurisdiction_Code'] = merged[f"{left_jur}_y"]
+    elif right_jur and right_jur in merged.columns:
         merged['Jurisdiction_Code'] = merged[right_jur]
+    elif f"{right_jur}_x" in merged.columns:
+        merged['Jurisdiction_Code'] = merged[f"{right_jur}_x"]
+    elif f"{right_jur}_y" in merged.columns:
+        merged['Jurisdiction_Code'] = merged[f"{right_jur}_y"]
+    elif 'JUR' in merged.columns:
+        merged['Jurisdiction_Code'] = merged['JUR']
     else:
         merged['Jurisdiction_Code'] = pd.NA
     # clean helper columns
