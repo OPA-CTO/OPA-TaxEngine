@@ -180,6 +180,26 @@ OPA-TaxEngine/
 
 ---
 
+## Automated Build Process
+
+The project includes automated validation and build checks via GitHub Actions:
+
+- **Power Query Validation**: Syntax and structure checks for all `.pqm` modules
+- **Dependency Analysis**: Tracks module implementation against expected refresh order
+- **Configuration Validation**: Ensures `Parameters.json` and `Column_Map.csv` are valid
+- **Documentation Checks**: Verifies required documentation is present
+
+**Running locally**:
+```bash
+python3 scripts/validate_pqm.py       # Validate Power Query modules
+python3 scripts/check_dependencies.py  # Check module dependencies
+python3 scripts/validate_config.py     # Validate configuration files
+```
+
+See [`docs/BUILD.md`](docs/BUILD.md) for complete build documentation.
+
+---
+
 ## Next Steps
 
 1. Update `Column_Map` sources for Q4.  
