@@ -1,0 +1,5 @@
+Txn_Date,Device_Number,SKU,Product_Desc,Qty,Net_Sales
+2025-10-01,1001,SKU-TWIX,Twix Bar,1,1.50
+2025-10-01,1002,SKU-SKITTLES,Skittles Bag,1,1.00
+2025-10-02,1001,SKU-WATER,Bottled Water,1,1.00
+2025-10-02,1003,SKU-COFFEE,Hot Coffee,1,2.50

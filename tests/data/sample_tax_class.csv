@@ -1,0 +1,5 @@
+SKU,Class,Assumed_Taxability,Class_Key
+SKU-TWIX,Chocolate,Local Only,SKU-TWIX
+SKU-SKITTLES,Candy,Taxable,SKU-SKITTLES
+SKU-WATER,Beverage,Exempt,SKU-WATER
+SKU-COFFEE,Beverage,Taxable,SKU-COFFEE

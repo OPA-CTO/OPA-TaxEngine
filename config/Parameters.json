@@ -1,5 +1,5 @@
 {
-  "Imports_Folder_Path": "C:\\Path\\to\\Quarterly Orders\\2025_Q4\\",
+  "Imports_Folder_Path": "C:\\Path\\to\\Quarterly Orders\\",
   "Filing_Frequency": "Quarterly",
   "Allow_ZIP_Fallback": true,
   "Timezone": "America/Denver"

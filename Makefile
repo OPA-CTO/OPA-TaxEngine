@@ -98,3 +98,8 @@ clean:
 	@find . -type f -name "*.pyc" -delete
 	@find . -type d -name "__pycache__" -delete
 	@echo "✓ Cleanup complete"
+PYTHON ?= python3
+
+.PHONY: setup-check
+setup-check:
+	$(PYTHON) tools/setup_check.py

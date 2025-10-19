@@ -242,6 +242,48 @@ See [`docs/BUILD.md`](docs/BUILD.md) for complete build documentation.
 
 ---
 
+## Automation: local quick-check
+
+We've included a small automation to validate local setup and required reference files.
+
+Run locally:
+
+```bash
+make setup-check
+```
+
+This will check for the presence of the CFO/COO reference workbooks under `references/` and validate `config/Parameters.json` and `config/Column_Map.csv`.
+
+CI: A lightweight GitHub Actions workflow runs this check on push to help developers notice missing references early.
+
+### Using a local Excel sample for testing
+
+If you already have a local test workbook and want the pipeline/tests to pick it up during development, you can point the imports path to the folder containing the workbook. For example, if you have the sample file located at:
+
+```
+C:\Users\justi\OneDrive\Documents\OPA\_refs:OPA_Tax_TestData_Sample.xlsx
+```
+
+You can set `config/Parameters.json`'s `Imports_Folder_Path` to the directory that contains the file (for example `C:\Users\justi\OneDrive\Documents\OPA\_refs\`) or use the `Column_Map` dynamic mapping to reference the exact workbook and sheet. The pipeline and tests look for files by name under your imports folder or the repo `references/` folder; for quick local testing you can either:
+
+- Copy `OPA_Tax_TestData_Sample.xlsx` into `references/`.
+- Or set `config/Parameters.json`:
+
+```json
+{
+    "Imports_Folder_Path": "C:\\Users\\justi\\OneDrive\\Documents\\OPA\\_refs\\",
+    "Filing_Frequency": "Quarterly",
+    "Allow_ZIP_Fallback": true,
+    "Timezone": "America/Denver"
+}
+```
+
+Notes:
+- Use double backslashes in JSON strings on Windows paths, or use forward slashes. The provided Power Query (`.pqm`) logic sanitizes trailing separators.
+- If you prefer a single-file reference style in `Column_Map`, include the workbook name exactly (`OPA_Tax_TestData_Sample.xlsx`) and the pipeline will detect it when copying into `references/` or pointing `Imports_Folder_Path` to its folder.
+
+---
+
 ## Change Log — Q4 Active
 
 - Added effective‑date rate logic.  
