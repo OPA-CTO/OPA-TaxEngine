@@ -1,0 +1,146 @@
+name: OPA TaxEngine - Build Validation
+
+on:
+  push:
+    branches: [ main, 'feature/**' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  validate-powerquery:
+    name: Validate Power Query Modules
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Validate Power Query syntax
+        run: |
+          python scripts/validate_pqm.py
+
+      - name: Check query dependencies
+        run: |
+          python scripts/check_dependencies.py
+
+      - name: Validate configuration files
+        run: |
+          python scripts/validate_config.py
+
+  validate-structure:
+    name: Validate Repository Structure
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate required directories
+        run: |
+          echo "Checking required directories..."
+          for dir in powerquery config docs exports; do
+            if [ ! -d "$dir" ]; then
+              echo "ERROR: Required directory '$dir' is missing"
+              exit 1
+            fi
+            echo "✓ Directory '$dir' exists"
+          done
+
+      - name: Validate required files
+        run: |
+          echo "Checking required files..."
+          required_files=(
+            "README.md"
+            "config/Parameters.json"
+            "config/Column_Map.csv"
+            "docs/Tests_Validation_Checklist.md"
+            ".github/CODEOWNERS"
+            ".github/pull_request_template.md"
+          )
+          
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "ERROR: Required file '$file' is missing"
+              exit 1
+            fi
+            echo "✓ File '$file' exists"
+          done
+
+      - name: Check Power Query modules
+        run: |
+          echo "Checking Power Query modules..."
+          pqm_files=$(find powerquery -name "*.pqm" -type f)
+          
+          if [ -z "$pqm_files" ]; then
+            echo "WARNING: No .pqm files found in powerquery directory"
+          else
+            echo "Found Power Query modules:"
+            echo "$pqm_files"
+          fi
+
+  validate-documentation:
+    name: Validate Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check README completeness
+        run: |
+          echo "Validating README.md..."
+          
+          required_sections=(
+            "Mission"
+            "Objectives"
+            "Source File Map"
+            "Architecture Overview"
+            "Validation Workflow"
+            "Repo Structure"
+          )
+          
+          for section in "${required_sections[@]}"; do
+            if grep -q "$section" README.md; then
+              echo "✓ Section '$section' found"
+            else
+              echo "WARNING: Section '$section' not found in README"
+            fi
+          done
+
+      - name: Check CTO documentation
+        run: |
+          if [ -f "docs/README_CTO.md" ]; then
+            echo "✓ CTO implementation contract found"
+            
+            if grep -q "Refresh Order" docs/README_CTO.md; then
+              echo "✓ Refresh order documented"
+            fi
+          else
+            echo "WARNING: docs/README_CTO.md not found"
+          fi
+
+  build-summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [validate-powerquery, validate-structure, validate-documentation]
+    if: always()
+    
+    steps:
+      - name: Build status summary
+        run: |
+          echo "## OPA TaxEngine Build Summary"
+          echo ""
+          echo "**Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "**Branch:** ${{ github.ref_name }}"
+          echo "**Commit:** ${{ github.sha }}"
+          echo ""
+          echo "### Validation Results"
+          echo "- Power Query validation: ${{ needs.validate-powerquery.result }}"
+          echo "- Structure validation: ${{ needs.validate-structure.result }}"
+          echo "- Documentation validation: ${{ needs.validate-documentation.result }}"
