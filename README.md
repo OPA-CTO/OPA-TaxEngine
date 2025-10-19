@@ -190,6 +190,22 @@ OPA-TaxEngine/
 
 ---
 
+## Automation: local quick-check
+
+We've included a small automation to validate local setup and required reference files.
+
+Run locally:
+
+```bash
+make setup-check
+```
+
+This will check for the presence of the CFO/COO reference workbooks under `references/` and validate `config/Parameters.json` and `config/Column_Map.csv`.
+
+CI: A lightweight GitHub Actions workflow runs this check on push to help developers notice missing references early.
+
+---
+
 ## Change Log — Q4 Active
 
 - Added effective‑date rate logic.  
