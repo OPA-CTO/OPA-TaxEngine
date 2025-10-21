@@ -283,7 +283,42 @@ Notes:
 - If you prefer a single-file reference style in `Column_Map`, include the workbook name exactly (`OPA_Tax_TestData_Sample.xlsx`) and the pipeline will detect it when copying into `references/` or pointing `Imports_Folder_Path` to its folder.
 
 ---
+## Cloud Automation (No Desktop Flow)
 
+**Owner:** justin.krakow@thenagrygamershow.com
+
+**Flow:** OneDrive new file → GitHub repository_dispatch → Actions runs Ubuntu → Exports artifact → Flow archives to `/Archives/YYYY_Q#/` → Notifies CFO/COO.
+
+### Trigger
+- OneDrive: “When a file is created (properties only)”
+- Watch: `/OPA Business Content/Inventory/Quarterly Orders/` (Include subfolders = Yes)
+- Filter: `startsWith(Name, 'Order details_')`
+
+### Quarter folder
+`QuarterPath = concat(yyyy, '_Q', ceil(MM/3))`  
+Exact expression: `concat(formatDateTime(utcNow(),'yyyy'),'_Q',string(div(add(int(formatDateTime(utcNow(),'MM')),2),3)))`
+
+### GitHub dispatch
+- API: `POST /repos/OPA-CTO/OPA-TaxEngine/dispatches`
+- event_type: `tax_pipeline_run`
+- client_payload: `{ file_url, quarter }`
+
+### Workflow (Ubuntu)
+- Downloads `file_url`
+- `pip install -r requirements.txt`
+- `pytest -q`
+- `python tools/run_pipeline.py --src ./inputs --out exports`
+- Uploads artifact `exports`
+
+### Archive & Notify
+- Flow polls run → downloads `exports` artifact
+- Extracts ZIP → `/Archives/YYYY_Q#/`
+- Emails/Teams CFO+COO with links + run status
+
+### Secrets
+- **Power Automate**: GitHub PAT (scope `repo`)
+- **GitHub**: none required for public OneDrive sharing links. For private links, use an Azure AD app + Graph in Actions.
+---
 ## Change Log — Q4 Active
 
 - Added effective‑date rate logic.  
